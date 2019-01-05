@@ -8,5 +8,5 @@ El contenido del repositorio es:
 - Fichero .Rmd con el código R (src/ajulianb_PRAC2.Rmd)
 - Ficheros csv con los datos de origen (data/2015.csv, data/2016.csv, data/2017.csv)
 - Fichero csv con el dataset obtenido (data/Happiness_clean.csv)
-- Documento PDF con las respuestas a las preguntas planteadas en el enunciado de la práctica (doc/ajulianb_PRAC2.pdf)
+- Documento con las respuestas a las preguntas planteadas en el enunciado de la práctica, en formato PDF (doc/ajulianb_PRAC2.pdf) y HTML (doc/ajulianb_PRAC2.html)
 
