@@ -1,0 +1,332 @@
+---
+title: 'Práctica 2. Tipología y ciclo de vida de los datos'
+author: "Alicia Julián Beltrán"
+date: "5 de enero de 2019"
+output:
+  html_document: default
+---
+
+#<span style="color:blue">Ejercicio 1</span>
+**Descripción del dataset**
+
+El conjunto de datos seleccionado es el dataset World Happiness Report (https://www.kaggle.com/unsdsn/world-happiness).<br>
+El dataset mide la felicidad basándose en seis factores: producción económica o PIB, apoyo social o familia, esperanza de vida, libertad, confianza en el gobierno o ausencia de corrupción y generosidad.<br>
+Los campos que tiene el dataset son:<br>
+- **Country**. Nombre del país.<br>
+- **Happiness Rank**. Rango del país en función de la puntuación en felicidad.<br>
+- **Happiness Score**. Métrica obtenida preguntando a las personas de la muestra cómo calificarían su felicidad, basándose en una escala del 1 al 10, donde el 10 es la puntuación más alta, es decir, el mayor nivel de felicidad.<br>
+- **Standard Error**. Error estándar de la puntuación de la felicidad.<br>
+- **Economy (GDP per Capita)**. La medida en que el PIB contribuye al cálculo de la puntuación de la felicidad.<br>
+- **Family**. La medida en que la familia contribuye al cálculo de la puntuación de la felicidad.<br>
+- **Health (Life Expectancy)**. La medida en que la esperanza de vida contribuye al cálculo de la puntuación de la felicidad.<br>
+- **Freedom**. La medida en que la libertad contribuye al cálculo de la puntuación de la felicidad.<br>
+- **Trust (Government Corruption)**. La medida en que la confianza en el gobierno contribuye al cálculo de la puntuación de la felicidad.<br>
+- **Generosity**. La medida en que la generosidad contribuye al cálculo de la puntuación de la felicidad.<br>
+- **Dystopia Residual**. La medida en que distopía residual contribuye al cálculo de la puntuación de la felicidad.<br>
+
+El dataset es importante para identificar aquellos factores que hacen que la población sea más feliz.
+
+```{r setup, include=FALSE}
+require(knitr)
+# include this code chunk as-is to set options
+opts_chunk$set(comment = NA, prompt = TRUE, tidy = FALSE, 
+               fig.width = 7, fig.height = 7,echo = TRUE, 
+               message = FALSE, warning = FALSE, cache=TRUE)
+Sys.setlocale("LC_TIME", "C")
+```
+
+
+```{r}
+##Establecemos el directorio de trabajo
+setwd("C:/Users/ali00/Google Drive/UOC_2018_2019/Tipologia_CV_Datos/PRACT2/")
+##Verificamos que el directorio de trabajo se ha cambiado correctamente
+getwd()
+```
+
+#<span style="color:blue">Ejercicio 2</span>
+**Integración de los datos**
+
+En primer lugar, vamos a importar e integrar los 3 ficheros.
+
+```{r}
+##Importamos el fichero 2015.csv en el dataset Happiness2015
+happiness2015=read.csv2("2015.csv",header=TRUE,sep=",")
+#Añadimos una columna para el año de los datos
+happiness2015$Year=2015
+
+##Importamos el fichero 2016.csv en el dataset Happiness2016
+happiness2016=read.csv2("2016.csv",header=TRUE,sep=",")
+#Añadimos una columna para el año de los datos
+happiness2016$Year=2016
+
+##Importamos el fichero 2017.csv en el dataset Happiness2015
+happiness2017=read.csv2("2017.csv",header=TRUE,sep=",")
+#Añadimos una columna para el año de los datos
+happiness2017$Year=2017
+
+```
+
+Una vez importados, vamos a ver la estructura de cada uno de ellos con el objetivo de integrarlos.
+
+```{r}
+#Describimos el dataset del año 2015
+##Número de campos
+ncol(happiness2015)
+
+#Estructura
+str(happiness2015)
+
+#Describimos el dataset del año 2016
+##Número de campos
+ncol(happiness2016)
+
+#Estructura
+str(happiness2016)
+
+#Describimos el dataset del año 2017
+##Número de campos
+ncol(happiness2017)
+
+#Estructura
+str(happiness2017)
+
+#Nos quedamos con las columnas que tienen en común los 3 datasets
+columnas=c("Year","Country", "Happiness.Rank", "Happiness.Score","Economy..GDP.per.Capita.", "Health..Life.Expectancy.", "Family", "Freedom", "Trust..Government.Corruption.", "Generosity", "Dystopia.Residual")
+
+#Integramos los tres datasets en uno único, quedándonos con las columnas comunes a los tres
+happiness=rbind(subset(happiness2015, select = columnas),subset(happiness2016, select = columnas),subset(happiness2017, select = columnas))
+
+##Mostramos los campos que tiene el dataset
+colnames(happiness)
+
+##Número de campos
+ncol(happiness)
+
+#Número de observaciones
+nrow(happiness)
+
+```
+
+#<span style="color:blue">Ejercicio 3</span>
+**Limpieza de los datos**
+En primer lugar, vamos a verificar si el tipo de cada una de las variables es correcto.
+Todas las variables, excepto Year, Country y Happiness.Rank, deberán ser numéricas.
+
+```{r}
+#Comprobamos el tipo de cada variable
+tipo <- sapply(happiness,class)
+kable(data.frame(variable=names(tipo),tipo=as.vector(tipo)))
+#Asignamos el tipo correcto en aquellas que no coincide
+happiness[1]=lapply(happiness[1],as.factor)
+happiness[3]=lapply(happiness[3],as.factor)
+
+for (i in 4:11){
+  happiness[,names(tipo[i])]=as.numeric(format(happiness[,names(tipo[i])], decimal.mark="."))
+}
+
+#Verificamos la correcta asignación 
+tipo <- sapply(happiness,class)
+kable(data.frame(variable=names(tipo),tipo=as.vector(tipo)))
+```
+<br>Vamos a verificar si tenemos elementos vacíos o valores atípicos.
+```{r}
+##Elementos vacíos
+sapply(happiness, function(x) sum(is.na(x)))
+
+```
+
+```{r}
+# Activa el parámetro para dibujar nueve gráficos por página
+par(mfrow=c(3,3))
+# Como no existen elementos vacíos, vamos a verificar los valores atípicos para cada una de las variables cuantitativas
+boxplot(happiness$Freedom, main="Freedom",col="gray")
+for (i in 4:11){
+  boxplot(happiness[names(tipo[i])], main=names(happiness[names(tipo[i])]),col="gray")
+}
+
+```
+<br>La primera variable en la que observamos valores atípicos es Family. Los valores atípicos para la variable son los siguientes:
+
+```{r}
+indices = which(happiness$Family %in% 
+  boxplot.stats(happiness[,"Family"])$out) 
+  cat("Family:", toString(indices), "\n" )
+
+#Comprobamos los valores correspondientes
+happiness[indices,"Family"]
+
+```
+Vemos que tenemos valores a 0 en las posiciones 148, 313 y 470. Para esas posiciones, vamos a imputar los valores a partir de los k-vecinos más cercanos usando la distancia de Gower con la información de todas las variables.
+
+```{r}
+library(VIM)
+perdidos = c(148,313,470)
+perdidos
+happiness$Family[perdidos] = kNN(happiness)$Family
+
+#Volvemos a revisar los valores atípicos para verificar que ya no tenemos valores perdidos
+indices = which(happiness$Family %in% 
+  boxplot.stats(happiness[,"Family"])$out) 
+  cat("Family:", toString(indices), "\n" )
+
+#Comprobamos los valores correspondientes
+happiness[indices,"Family"]
+
+```
+Otras de las variables en la que podemos ver valores atípicos son Trust..Government.Corruption y Generosity. Los valores atípicos para las variables son los siguientes:
+
+```{r}
+#Variable Trust..Government.Corruption
+indicesT = which(happiness$Trust..Government.Corruption. %in% 
+  boxplot.stats(happiness[,"Trust..Government.Corruption."])$out) 
+  cat("Trust..Government.Corruption.:", toString(indicesT), "\n" )
+
+#Comprobamos los valores correspondientes
+happiness[indicesT,"Trust..Government.Corruption."]
+
+#Variable Generosity
+indicesG = which(happiness$Generosity %in% 
+  boxplot.stats(happiness[,"Generosity"])$out) 
+  cat("Generosity:", toString(indicesG), "\n" )
+
+#Comprobamos los valores correspondientes
+happiness[indicesG,"Generosity"]
+```
+En ambos casos, no podemos saber si son valores correctos o incorrectos, por lo que los mantenemos.
+
+Una vez tratados los datos, los exportamos a un fichero csv:
+
+```{r}
+write.csv(happiness, "Happiness_clean.csv")
+```
+
+
+#<span style="color:blue">Ejercicio 4</span>
+**Análisis de los datos**<br>
+Para hacer el estudio, nos vamos a quedar con las seis variables que miden la felicidad: Economy..GDP.per.Capita., Family, Health..Life.Expectancy., Freedom, Generosity y Trust..Government.Corruption.
+Para comprobar la normalidad, vamos a dibujar un histograma y un qq plot para ver de forma gráfica la simetría de la distribución para cada una de las seis variables.
+
+```{r}
+# Dibuja un histograma
+with(happiness, hist(Happiness.Score) ) 
+ # Dibuja un qq plot
+with(happiness, qqnorm(happiness$Happiness.Score, main="Happiness Score Normal QQplot" ));with(happiness, qqline(happiness$Happiness.Score) )
+# Efectúa el test de normalidad de Shapiro-Wilks
+with(happiness, shapiro.test(Happiness.Score) ) 
+```
+<br>Se observa que la variable Happiness Score no sigue una distribución normal. El histograma no es simétrico y en el qq-plot los puntos no se sitúan sobre la línea. El p valor del contraste de normalidad nos indica que hay que rechazar la hipótesis nula y que la media no es un buen descriptor para la puntuación de la felicidad.
+
+```{r}
+# Dibuja un histograma
+with(happiness, hist(happiness$Economy..GDP.per.Capita.) ) 
+ # Dibuja un qq plot
+with(happiness, qqnorm(happiness$Economy..GDP.per.Capita., main="Economy. GDP per Capita QQplot" ));with(happiness, qqline(happiness$Economy..GDP.per.Capita.) )
+# Efectúa el test de normalidad de Shapiro-Wilks
+with(happiness, shapiro.test(happiness$Economy..GDP.per.Capita.) ) 
+```
+<br>En este caso, se ve más claramente que la variable Economy..GDP.per.Capita. no sigue una distribución normal. El histograma no es simétrico y en el qq-plot los puntos no se sitúan sobre la línea. El p valor del contraste de normalidad nos indica que hay que rechazar la hipótesis nula.
+
+A continuación, se comprueba de la misma manera que el resto de variables no siguen una distribución normal.
+
+```{r}
+# Dibuja un histograma
+with(happiness, hist(happiness$Health..Life.Expectancy., main = "Histogram of Health") ) 
+ # Dibuja un qq plot
+with(happiness, qqnorm(happiness$Health..Life.Expectancy., main="Health QQplot" ));with(happiness, qqline(happiness$Health..Life.Expectancy.) )
+# Efectúa el test de normalidad de Shapiro-Wilks
+with(happiness, shapiro.test(happiness$Health..Life.Expectancy.) ) 
+```
+
+```{r}
+# Dibuja un histograma
+with(happiness, hist(happiness$Family) ) 
+ # Dibuja un qq plot
+with(happiness, qqnorm(happiness$Family, main="Family QQplot" ));with(happiness, qqline(happiness$Family) )
+# Efectúa el test de normalidad de Shapiro-Wilks
+with(happiness, shapiro.test(happiness$Family) ) 
+```
+
+```{r}
+# Dibuja un histograma
+with(happiness, hist(happiness$Freedom) ) 
+ # Dibuja un qq plot
+with(happiness, qqnorm(happiness$Freedom, main="Freedom QQplot" ));with(happiness, qqline(happiness$Freedom) )
+# Efectúa el test de normalidad de Shapiro-Wilks
+with(happiness, shapiro.test(happiness$Freedom) ) 
+```
+
+```{r}
+# Dibuja un histograma
+with(happiness, hist(Trust..Government.Corruption.,  main="Histogram of Corruption")) 
+ # Dibuja un qq plot
+with(happiness, qqnorm(happiness$Trust..Government.Corruption., main="Corruption Normal QQplot" ));with(happiness, qqline(happiness$Trust..Government.Corruption.) )
+# Efectúa el test de normalidad de Shapiro-Wilks
+with(happiness, shapiro.test(Trust..Government.Corruption.) ) 
+```
+
+```{r}
+# Dibuja un histograma
+with(happiness, hist(Generosity) ) 
+ # Dibuja un qq plot
+with(happiness, qqnorm(happiness$Generosity, main="Generosity Normal QQplot" ));with(happiness, qqline(happiness$Generosity) )
+# Efectúa el test de normalidad de Shapiro-Wilks
+with(happiness, shapiro.test(Generosity) ) 
+```
+**Prueba de homogeneidad de varianzas**
+Para ver la homogeneidad de varianzas, se utiliza un test de Fligner-Killeen.
+
+```{r}
+fligner.test(Happiness.Score~Economy..GDP.per.Capita., data = happiness)
+fligner.test(Happiness.Score~Family, data = happiness)
+fligner.test(Happiness.Score~Health..Life.Expectancy., data = happiness)
+fligner.test(Happiness.Score~Freedom, data = happiness)
+fligner.test(Happiness.Score~Generosity, data = happiness)
+fligner.test(Happiness.Score~Trust..Government.Corruption., data = happiness)
+```
+Excepto en el caso de la variable Family, para el resto podemos aceptar la hipótesis de que las varianzas son homogéneas al obtener un p-valor superior a 0,05.
+
+**Pruebas estadísticas**
+Queremos ver, de forma general, cuáles son las variables con mayor relación con la felicidad.
+```{r}
+#Utilizamos un modelo de regresión múltiple sobre las variables que influyen en la felicidad.
+modelo = lm(happiness$Happiness.Score ~ ., data=happiness[,5:10])
+summary(modelo)
+```
+Vemos que la puntuación de la felicidad depende sobre todo de las variables Economy..GDP.per.Capita., Health..Life.Expectancy., Family y Freedom. 
+Además, el test parcial sobre la variable Generosity tiene un p-valor > 0.05 por lo que no podemos suponer que la felicidad dependa de la generosidad.
+Como el valor de R2 es bastante alto, podemos suponer que tenemos bondad en el ajuste.
+
+Podemos ver la evolución en los años
+
+```{r}
+#Para el año 2015
+happiness2015=happiness[which(happiness$Year==2015),]
+modelo2015 = lm(happiness2015$Happiness.Score ~ ., data=happiness2015[,5:10])
+summary(modelo2015)
+
+#Para el año 2016
+happiness2016=happiness[which(happiness$Year==2016),]
+modelo2016 = lm(happiness2016$Happiness.Score ~ ., data=happiness2016[,5:10])
+summary(modelo2016)
+
+#Para el año 2017
+happiness2017=happiness[which(happiness$Year==2017),]
+modelo2017 = lm(happiness2017$Happiness.Score ~ ., data=happiness2017[,5:10])
+summary(modelo2017)
+
+```
+Vemos que la puntuación de la felicidad depende sobre todo de las variables Economy..GDP.per.Capita., Health..Life.Expectancy., Family y Freedom. 
+Además, revisando los datos de los 3 años, vemos que el p-valor para las variables Generosity y Trust..Government.Corruption. es superior a 0.05 por lo que no podemos suponer que la felicidad dependa de esas variables.
+
+#<span style="color:blue">Ejercicio 5</span>
+Mediante la creación de gráficos de dispersión, podemos ver gráficamente los resultados anteriores.
+```{r}
+# Dibujamos cuatro gráficos por página
+par(mfrow=c(3,2))
+plot(happiness$Happiness.Score, happiness$Economy..GDP.per.Capita., xlab = "Felicidad", ylab = "PIB", title("Relación felicidad-economía"))
+plot(happiness$Happiness.Score, happiness$Family, xlab = "Felicidad", ylab = "Familia", title("Relación felicidad-familia"))
+plot(happiness$Happiness.Score, happiness$Health..Life.Expectancy., xlab = "Health..Life.Expectancy.", ylab = "Salud", title("Relación felicidad-salud"))
+plot(happiness$Happiness.Score, happiness$Freedom, xlab = "Felicidad", ylab = "Libertad", title("Relación felicidad-libertad"))
+plot(happiness$Happiness.Score, happiness$Trust..Government.Corruption., xlab = "Felicidad", ylab = "Trust..Government.Corruption.", title("Relación felicidad-corrupción"))
+plot(happiness$Happiness.Score, happiness$Generosity, xlab = "Felicidad", ylab = "Generosity", title ("Relación felicidad-generosidad"))
+```
